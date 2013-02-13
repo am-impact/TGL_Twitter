@@ -64,46 +64,27 @@ class Tgl_twitter_model extends CI_Model
 	 */
 	function insert_new_settings()
 	{
-		
-		$success = true;
-		
-		// get current settings out of DB
-		$sql = "SELECT * FROM exp_tgl_twitter_settings WHERE site_id = $this->site_id";
-		$settings_result = $this->db->query($sql);
-		
-		$old_settings = $settings_result->result_array();
-				
-		$current_settings = array();
-				
-		foreach ($old_settings as $csetting)
+		// Removing the submit post value
+		unset($_POST['Submit']);
+
+		if (empty($_POST['consumer_key']) && empty($_POST['consumer_secret']))
 		{
-			$current_settings[$csetting['var']] = $csetting['var_value'];
+			return FALSE;
 		}
 
 		//remove all settings before we re-add them
 		$this->delete_all_settings();
-				
-		// insert settings into DB
-		foreach ($_POST as $key => $value)
-		{
-			if ($key !== 'submit' && $key !== 'Submit')
-			{
-        // $key = $DB->escape_str($key);
-        if(!$this->db->query($this->db->insert_string(
-         "exp_tgl_twitter_settings", 
-         array(
-           'var'       => $key,
-           'var_value' => $value, 
-           'site_id'   => $this->site_id
-         )
-        ))){
-          $success = false;
-        }
-			}
-		}
-		
-		return $success;
-			
+
+		$sql = sprintf("INSERT INTO `exp_tgl_twitter_settings` (`id`, `site_id`, `consumer_key`, `consumer_secret`, `oauth_token`, `oauth_token_secret`)
+			VALUES
+				('%d', '%d', '%s', '%s', NULL, NULL)",
+			1, //INSERT ID
+			$this->site_id, //CURRENT SITE ID
+			$this->db->escape_str($_POST['consumer_key']),
+			$this->db->escape_str($_POST['consumer_secret'])
+		);
+
+		return $this->db->query($sql);
 	}
 
 	/**
