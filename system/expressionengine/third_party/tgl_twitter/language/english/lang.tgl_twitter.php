@@ -9,10 +9,14 @@ $lang = array(
 
 	// Additional Key => Value pairs go here
 
-
-
-// END
-'' => ''
+	// END
+	'tgl_twitter_user_setup'         => 'TGL Twitter User Setup',
+	'authentication_link'            => 'Authentication link',
+	'get_authentication'             => 'Get authentication',
+	'delete_authentication'          => 'Delete authentication',
+	'prevoke_authentication'         => 'Prevoke authentication',
+	'consumer_key'                   => 'Consumer key',
+	'consumer_secret'                => 'Consumer secret',
 );
 
 /* End of File: lang.module.php */
