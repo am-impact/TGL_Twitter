@@ -149,12 +149,21 @@ class Tgl_twitter_mcp
 	 * @return void
 	 * @author Bryant Hughes
 	 */
-	public function erase_settings()
+	public function prevoke_authentication()
 	{
 		$this->EE->load->model('tgl_twitter_model');
-		$this->EE->tgl_twitter_model->delete_all_settings();
-		$this->EE->session->set_flashdata('message_success', $this->EE->lang->line('Authentication Settings Erased.'));
-		$this->EE->functions->redirect(BASE.AMP.'C=addons_modules'.AMP.'M=show_module_cp'.AMP.'module=tgl_twitter');
+		$result = $this->EE->tgl_twitter_model->delete_oauth_tokens();
+
+		if ($result)
+		{
+			$this->EE->session->set_flashdata('message_success', $this->EE->lang->line('Authentication tokens erased.'));
+		}
+		else
+		{
+			$this->EE->session->set_flashdata('message_failure', $this->EE->lang->line('Authentication could not be erased.'));
+		}
+
+		$this->EE->functions->redirect(BASE . AMP . 'C=addons_modules' . AMP . 'M=show_module_cp' . AMP . 'module=tgl_twitter');
 	}
 }
 
