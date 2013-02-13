@@ -18,10 +18,20 @@ class Tgl_twitter_mcp
 		// load table lib for control panel
 		$this->EE->load->library('table');
 		$this->EE->load->helper('form');
-		
+
+		// Setting up menu
+		$menu = array(
+			'User settings' => BASE . AMP . 'C=addons_modules' . AMP . 'M=show_module_cp' . AMP . 'module=tgl_twitter',
+		);
+
+		if ($this->EE->session->userdata('group_id') == 1)
+		{
+			$menu['Configuration'] = BASE . AMP . 'C=addons_modules' . AMP . 'M=show_module_cp' . AMP . 'module=tgl_twitter' . AMP . 'method=configuration';
+		}
+
+		// Set page settings
 		$this->EE->cp->load_package_css('tgl_twitter');
-		
-		// Set page title
+		$this->EE->cp->set_right_nav($menu);
 		$this->EE->cp->set_variable('cp_page_title', $this->EE->lang->line('tgl_twitter_module_name'));
 	}
 
