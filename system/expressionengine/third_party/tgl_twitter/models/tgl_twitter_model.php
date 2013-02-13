@@ -135,23 +135,7 @@ class Tgl_twitter_model extends CI_Model
 	{
 		// clense current settings out of DB : we add the WHERE site_id = $site_id, because the only setting we want to save is the module_id
 		// setting, which is set to site_id 0 -- because its not site specific
-		$sql = "DELETE FROM exp_tgl_twitter_settings WHERE site_id = $this->site_id";
-		return $this->db->query($sql);
-		
-	}
-	
-	/**
-	 * deletes a specific setting from the module
-	 *
-	 * @param string $val - name of the setting you want to delete
-	 * @return void
-	 * @author Bryant Hughes
-	 */
-	function delete_setting($val)
-	{
-		$this->db->where('site_id', $this->site_id);
-		$this->db->where('var', $val);
-		return $this->db->delete('exp_tgl_twitter_settings');
+		return $this->db->query("DELETE FROM `exp_tgl_twitter_settings` WHERE `site_id` = " . $this->site_id);
 	}
 }
 	
