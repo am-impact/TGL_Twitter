@@ -127,32 +127,20 @@ class Tgl_twitter_mcp
 	 * @return boolean : depending if we were able to generate the tokens and save them to the DB or NOT
 	 * @author Bryant Hughes
 	 */
-	private function generate_access_tokens($settings)
+	public function submit_configuration()
 	{
 		$this->EE->load->model('tgl_twitter_model');
-		
-		//Retrieve our previously generated request token & secret
-		$requestToken = $settings['request_token'];
-		$requestTokenSecret = $settings['request_token_secret'];
-		
-		$oauth = new TwitterOAuth('consumer_key', 'consumer_secret', $requestToken, $requestTokenSecret);
-		
-		// Generate access token by providing PIN for Twitter
-		$request = $oauth->getAccessToken(NULL, $settings['pin']);
-		
-		if($request != FALSE)
-		{
-			$access_token = $request['oauth_token'];
-			$access_token_secret = $request['oauth_token_secret'];
+		$success = $this->EE->tgl_twitter_model->insert_new_settings();
 
-			// Save our access token/secret
-			return $this->EE->tgl_twitter_model->insert_access_token($access_token, $access_token_secret);
+		if ($success)
+		{
+			$this->EE->session->set_flashdata('message_success', $this->EE->lang->line('Consumer -key and -secret are now saved!'));
 		}
 		else
 		{
-			return FALSE;
+			$this->EE->session->set_flashdata('message_failure', $this->EE->lang->line('Consumer -key and -secret could not be saved!'));
 		}
-		
+		$this->EE->functions->redirect(BASE . AMP . 'C=addons_modules' . AMP . 'M=show_module_cp' . AMP . 'module=tgl_twitter' . AMP . 'method=configuration');
 	}
 
 	/**
