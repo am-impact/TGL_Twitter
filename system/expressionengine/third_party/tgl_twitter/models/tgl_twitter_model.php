@@ -114,45 +114,15 @@ class Tgl_twitter_model extends CI_Model
 	 * @return void
 	 * @author Bryant Hughes
 	 */
-	function insert_access_token($access_token, $access_token_secret)
+	function delete_oauth_tokens()
 	{
-		
-		$success = true;
-					
-		$this->db->where('site_id', $this->site_id);
-		$this->db->where('var', 'access_token');
-		if( ! $this->db->delete('exp_tgl_twitter_settings')){
-			$success = false;
-		}
-		
-		$this->db->where('site_id', $this->site_id);
-		$this->db->where('var', 'access_token_secret');
-		if( ! $this->db->delete('exp_tgl_twitter_settings')){
-			$success = false;
-		}
-		
-		if(!$this->db->query($this->db->insert_string("exp_tgl_twitter_settings", 
-     array(
-       'var'       => 'access_token',
-       'var_value' => $access_token, 
-       'site_id'   => $this->site_id
-     )
-    ))){
-      $success = false;
-    }
-		
-		if(!$this->db->query($this->db->insert_string("exp_tgl_twitter_settings", 
-     array(
-       'var'       => 'access_token_secret',
-       'var_value' => $access_token_secret, 
-       'site_id'   => $this->site_id
-     )
-    ))){
-      $success = false;
-    }
-		
-		return $success;
-		
+		return $this->db->update(
+			'exp_tgl_twitter_settings',
+			array(
+			     'oauth_token'        => NULL,
+			     'oauth_token_secret' => NULL
+			),
+			'`site_id` = ' . $this->site_id);
 	}
 
 	/**
