@@ -36,10 +36,10 @@ class Tgl_twitter_mcp
 	}
 
 	/**
-	 * Module CP index function
+	 * User setup configuration
 	 *
 	 * @return void
-	 * @author Bryant Hughes
+	 * @author Ronald van Zon
 	 */
 	public function index()
 	{
@@ -61,10 +61,10 @@ class Tgl_twitter_mcp
 	}
 
 	/**
-	 * Called after new settings have been submitted
+	 * Admin configuration panel
 	 *
 	 * @return void
-	 * @author Bryant Hughes
+	 * @author Ronald van Zon
 	 */
 	public function configuration()
 	{
@@ -82,10 +82,10 @@ class Tgl_twitter_mcp
 	}
 
 	/**
-	 * Called after a user clicks "Register"
+	 * Called after user settings have been submitted
 	 *
 	 * @return void
-	 * @author Bryant Hughes
+	 * @author Ronald van Zon
 	 */
 	public function submit_user_settings()
 	{
@@ -121,11 +121,10 @@ class Tgl_twitter_mcp
 	}
 
 	/**
-	 * Used to generate the access tokens from Twitter.  This is the last step in the authentication process
+	 * Called after admin configuration settings have been submitted
 	 *
-	 * @param string $settings 
-	 * @return boolean : depending if we were able to generate the tokens and save them to the DB or NOT
-	 * @author Bryant Hughes
+	 * @return void
+	 * @author Ronald van Zon
 	 */
 	public function submit_configuration()
 	{
@@ -144,10 +143,10 @@ class Tgl_twitter_mcp
 	}
 
 	/**
-	 * function that kills all settings in the DB and starts us over at square one.
+	 * prevoke oauth tokens
 	 *
 	 * @return void
-	 * @author Bryant Hughes
+	 * @author Ronald van Zon
 	 */
 	public function prevoke_authentication()
 	{
@@ -167,4 +166,4 @@ class Tgl_twitter_mcp
 	}
 }
 
-/* End of File: mcp.module.php */
+/* End of File: mcp.tgl_twitter.php */

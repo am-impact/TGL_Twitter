@@ -7,7 +7,7 @@
  * Model that handles DB communication for the TGL Twitter Module
  *
  * @author Bryant Hughes
- * @version 0.1
+ * @version   0.2
  * @copyright The Good Lab - http://thegoodlab.com , 18 August, 2011
  **/
 
@@ -39,7 +39,7 @@ class Tgl_twitter_model extends CI_Model
 	 * Returns all channel field settings
 	 *
 	 * @return array : settings for the module
-	 * @author Bryant Hughes
+	 * @author Ronald van Zon
 	 */
 	function get_settings()
 	{
@@ -56,11 +56,12 @@ class Tgl_twitter_model extends CI_Model
 	}
 
 	/**
-	 * Deletes all old settings, then loops through the post and creates new settings based on the values
-	 * that are submitted.
+	 * Deletes all old settings,
+	 * inserts new settings into the database
 	 *
+	 * @TODO Alter to allow multiple twitter accounts
 	 * @return boolean - if the operation was successful
-	 * @author Bryant Hughes
+	 * @author Ronald van Zon
 	 */
 	function insert_new_settings()
 	{
@@ -88,12 +89,10 @@ class Tgl_twitter_model extends CI_Model
 	}
 
 	/**
-	 * deletes any old request tokens and then re-inserts the provided tokens
+	 * Update the settings with oauth_token and -secret
 	 *
-	 * @param string $request_token 
-	 * @param string $request_token_secret 
 	 * @return boolean - if the operation was successful
-	 * @author Bryant Hughes
+	 * @author Ronald van Zon
 	 */
 	function insert_oauth_token($oauth_token, $oauth_token_secret)
 	{
@@ -107,12 +106,10 @@ class Tgl_twitter_model extends CI_Model
 	}
 
 	/**
-	 * deletes any old access tokens and then re-inserts the provided tokens
+	 * Remove oauth tokens
 	 *
-	 * @param string $access_token 
-	 * @param string $access_token_secret 
-	 * @return void
-	 * @author Bryant Hughes
+	 * @return Boolean
+	 * @author Ronald van Zon
 	 */
 	function delete_oauth_tokens()
 	{
@@ -130,6 +127,7 @@ class Tgl_twitter_model extends CI_Model
 	 *
 	 * @return void
 	 * @author Bryant Hughes
+	 * @author Ronald van Zon
 	 */
 	function delete_all_settings()
 	{

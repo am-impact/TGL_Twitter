@@ -1,9 +1,8 @@
 <?php
 
-	/*
-  This view displays all of the module wide settings that can be 
-  edited by the admin.
-	*/
+/**
+A View where only the user has to accept the tokens
+ */
 
 //Check if message is present, stop all other actions
 if (isset($message))
