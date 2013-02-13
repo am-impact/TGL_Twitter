@@ -1,17 +1,20 @@
-<?php if( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php if (! defined('BASEPATH'))
+{
+	exit('No direct script access allowed');
+}
 
-require_once PATH_THIRD.'tgl_twitter/classes/twitteroauth.php';
+require_once PATH_THIRD . 'tgl_twitter/classes/twitteroauth.php';
 
 class Tgl_twitter_mcp
 {
 	private $data = array();
-	
+
 	public function __construct()
 	{
-		$this->EE =& get_instance();
-		$this->site_id = $this->EE->config->item('site_id');
-		$this->base_url = BASE.AMP.'C=addons_modules'.AMP.'M=show_module_cp'.AMP.'module=tgl_twitter';
-		    
+		$this->EE       =& get_instance();
+		$this->site_id  = $this->EE->config->item('site_id');
+		$this->base_url = BASE . AMP . 'C=addons_modules' . AMP . 'M=show_module_cp' . AMP . 'module=tgl_twitter';
+
 		// load table lib for control panel
 		$this->EE->load->library('table');
 		$this->EE->load->helper('form');
@@ -20,8 +23,8 @@ class Tgl_twitter_mcp
 		
 		// Set page title
 		$this->EE->cp->set_variable('cp_page_title', $this->EE->lang->line('tgl_twitter_module_name'));
-		
 	}
+
 	/**
 	 * Module CP index function
 	 *
@@ -37,7 +40,7 @@ class Tgl_twitter_mcp
 										
 		return $this->EE->load->view('index', $this->data, TRUE);
 	}
-	
+
 	/**
 	 * Called after new settings have been submitted
 	 *
@@ -86,7 +89,7 @@ class Tgl_twitter_mcp
 		$this->EE->functions->redirect(BASE.AMP.'C=addons_modules'.AMP.'M=show_module_cp'.AMP.'module=tgl_twitter');
 
 	}
-	
+
 	/**
 	 * Called after a user clicks "Register"
 	 *
@@ -95,7 +98,6 @@ class Tgl_twitter_mcp
 	 */
 	public function register_with_twitter()
 	{
-		
 		$this->EE->load->model('tgl_twitter_model');
 		$settings = $this->EE->tgl_twitter_model->get_settings();
 		
@@ -135,7 +137,7 @@ class Tgl_twitter_mcp
 		}
 					
 	}
-	
+
 	/**
 	 * Used to generate the access tokens from Twitter.  This is the last step in the authentication process
 	 *
@@ -170,7 +172,7 @@ class Tgl_twitter_mcp
 		}
 		
 	}
-	
+
 	/**
 	 * function that kills all settings in the DB and starts us over at square one.
 	 *
@@ -184,7 +186,6 @@ class Tgl_twitter_mcp
 		$this->EE->session->set_flashdata('message_success', $this->EE->lang->line('Authentication Settings Erased.'));
 		$this->EE->functions->redirect(BASE.AMP.'C=addons_modules'.AMP.'M=show_module_cp'.AMP.'module=tgl_twitter');
 	}
-		
 }
 
 /* End of File: mcp.module.php */

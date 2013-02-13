@@ -1,4 +1,7 @@
-<?php  if (!defined('BASEPATH')) exit('No direct script access allowed');
+<?php  if (! defined('BASEPATH'))
+{
+	exit('No direct script access allowed');
+}
 
 /**
  * Model that handles DB communication for the TGL Twitter Module
@@ -8,28 +11,29 @@
  * @copyright The Good Lab - http://thegoodlab.com , 18 August, 2011
  **/
 
-class Tgl_twitter_model extends CI_Model {
-  
+class Tgl_twitter_model extends CI_Model
+{
+
 	public $site_id;
-	
+
 	var $_ee;
 	var $cache;
-		
+
 	function __construct()
 	{
 		parent::__construct();
-		
-		$this->_ee =& get_instance();
+
+		$this->_ee     =& get_instance();
 		$this->site_id = $this->_ee->config->item('site_id');
-		
+
 		//prep-cache
 		if (! isset($this->_ee->session->cache['tgl_twitter']))
 		{
 			$this->_ee->session->cache['tgl_twitter'] = array();
 		}
 		$this->cache =& $this->_ee->session->cache['tgl_twitter'];
-	
-  }
+
+	}
 
 	/**
 	 * Returns all channel field settings
@@ -59,7 +63,7 @@ class Tgl_twitter_model extends CI_Model {
 		return $settings;
 			
 	}
-			
+
 	/**
 	 * Deletes all old settings, then loops through the post and creates new settings based on the values
 	 * that are submitted.
@@ -84,7 +88,7 @@ class Tgl_twitter_model extends CI_Model {
 		{
 			$current_settings[$csetting['var']] = $csetting['var_value'];
 		}
-			
+
 		//remove all settings before we re-add them
 		$this->delete_all_settings();
 				
@@ -110,7 +114,7 @@ class Tgl_twitter_model extends CI_Model {
 		return $success;
 			
 	}
-	
+
 	/**
 	 * deletes any old request tokens and then re-inserts the provided tokens
 	 *
@@ -159,7 +163,7 @@ class Tgl_twitter_model extends CI_Model {
 		return $success;
 		
 	}
-	
+
 	/**
 	 * deletes any old access tokens and then re-inserts the provided tokens
 	 *
@@ -208,7 +212,7 @@ class Tgl_twitter_model extends CI_Model {
 		return $success;
 		
 	}
-	
+
 	/**
 	 * deletes all settings for the module
 	 *
@@ -217,8 +221,7 @@ class Tgl_twitter_model extends CI_Model {
 	 */
 	function delete_all_settings()
 	{
-		
-		// clense current settings out of DB : we add the WHERE site_id = $site_id, because the only setting we want to save is the module_id 
+		// clense current settings out of DB : we add the WHERE site_id = $site_id, because the only setting we want to save is the module_id
 		// setting, which is set to site_id 0 -- because its not site specific
 		$sql = "DELETE FROM exp_tgl_twitter_settings WHERE site_id = $this->site_id";
 		return $this->db->query($sql);
@@ -238,10 +241,7 @@ class Tgl_twitter_model extends CI_Model {
 		$this->db->where('var', $val);
 		return $this->db->delete('exp_tgl_twitter_settings');
 	}
-		
 }
-	
-	
 	
 	
 	
