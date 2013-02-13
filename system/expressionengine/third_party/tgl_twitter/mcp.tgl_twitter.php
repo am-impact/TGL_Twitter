@@ -44,10 +44,19 @@ class Tgl_twitter_mcp
 	public function index()
 	{
 		$this->EE->load->model('tgl_twitter_model');
-		
-		$this->data['form_action'] = AMP.'C=addons_modules'.AMP.'M=show_module_cp'.AMP.'module=tgl_twitter'.AMP.'method=submit_settings';
-		$this->data['settings'] = $this->EE->tgl_twitter_model->get_settings();
-										
+
+		$this->data['form_action'] = AMP . 'C=addons_modules' . AMP . 'M=show_module_cp' . AMP . 'module=tgl_twitter' . AMP . 'method=submit_user_settings';
+		$this->data['settings']    = $this->EE->tgl_twitter_model->get_settings();
+
+		if (empty($this->data['settings']['consumer_key']) && empty($this->data['settings']['consumer_secret']))
+		{
+			$this->data['message'] = $this->EE->lang->line('TGL Twitter has not been configured yet, contact an administrator to get it configured.');
+		}
+
+		$connection                          = new TwitterOAuth($this->data['settings']['consumer_key'], $this->data['settings']['consumer_secret']);
+		$this->data['temporary_credentials'] = $connection->getRequestToken();
+		$this->data['authentication_url']    = $connection->getAuthorizeURL($this->data['temporary_credentials']);
+
 		return $this->EE->load->view('index', $this->data, TRUE);
 	}
 
@@ -106,46 +115,37 @@ class Tgl_twitter_mcp
 	 * @return void
 	 * @author Bryant Hughes
 	 */
-	public function register_with_twitter()
+	public function submit_user_settings()
 	{
 		$this->EE->load->model('tgl_twitter_model');
-		$settings = $this->EE->tgl_twitter_model->get_settings();
-		
-		$oauth = new TwitterOAuth($settings['consumer_key'], $settings['consumer_secret']);
-		$request = $oauth->getRequestToken();
-		
-		if($request != FALSE){
-			
-			$requestToken = $request['oauth_token'];
-			$requestTokenSecret = $request['oauth_token_secret'];
-			
-			//save auth tokens into the db
-			$success = $this->EE->tgl_twitter_model->insert_secret_token($requestToken,$requestTokenSecret);
+		$this->data['settings']       = $this->EE->tgl_twitter_model->get_settings();
+		$temporary_oauth_token        = $this->EE->input->post('temporary_oauth_token');
+		$temporary_oauth_token_secret = $this->EE->input->post('temporary_oauth_token_secret');
+		$success                      = FALSE;
 
-			if($success){
-				
-				// get Twitter generated registration URL and load the authenticate view
-				$this->data['register_url'] = $oauth->getAuthorizeURL($request);
-				$this->EE->session->set_flashdata('message_success', $this->EE->lang->line('Success!'));
-				return $this->EE->load->view('authenticate', $this->data, TRUE);
-			}
-			else
-			{
-				$this->EE->session->set_flashdata('message_failure', $this->EE->lang->line('There was an error saving request tokens.'));
-				$this->EE->functions->redirect(BASE.AMP.'C=addons_modules'.AMP.'M=show_module_cp'.AMP.'module=tgl_twitter');
-			}
-			
-		}else{
-			
-			//else : we were not able to create request tokens, probably becase the consumer key/secret were correct.  lets erase those keys
-			//			 from the settings and send the user back to square one of the process.
-			
-			$this->EE->tgl_twitter_model->delete_all_settings();
-			$this->EE->session->set_flashdata('message_failure', $this->EE->lang->line('There was an error generating request tokens. Please verify and re-submit your Consumer Key and Secret.'));
-			$this->EE->functions->redirect(BASE.AMP.'C=addons_modules'.AMP.'M=show_module_cp'.AMP.'module=tgl_twitter');
-			
+		$connection        = new TwitterOAuth(
+			$this->data['settings']['consumer_key'],
+			$this->data['settings']['consumer_secret'],
+			$temporary_oauth_token,
+			$temporary_oauth_token_secret
+		);
+		$token_credentials = $connection->getAccessToken();
+
+		if (isset($token_credentials['oauth_token']) && isset($token_credentials['oauth_token_secret']))
+		{
+			$success = $this->EE->tgl_twitter_model->insert_oauth_token($token_credentials['oauth_token'], $token_credentials['oauth_token_secret']);
 		}
-					
+
+		if ($success)
+		{
+			$this->EE->session->set_flashdata('message_success', $this->EE->lang->line('Oauth -token and -secret are now saved!'));
+		}
+		else
+		{
+			$this->EE->session->set_flashdata('message_failure', $this->EE->lang->line('Oauth -token and -secret could not be saved!'));
+		}
+
+		$this->EE->functions->redirect(BASE . AMP . 'C=addons_modules' . AMP . 'M=show_module_cp' . AMP . 'module=tgl_twitter');
 	}
 
 	/**
