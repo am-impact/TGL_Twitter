@@ -1,8 +1,8 @@
 <?php
 class Tgl_twitter_upd
 {
-	public $version = '0.1';
-	
+	public $version = '0.2';
+
 	public function __construct()
 	{
 		$this->EE      =& get_instance();
