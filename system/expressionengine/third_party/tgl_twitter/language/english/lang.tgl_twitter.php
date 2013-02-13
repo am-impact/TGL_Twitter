@@ -19,4 +19,4 @@ $lang = array(
 	'consumer_secret'                => 'Consumer secret',
 );
 
-/* End of File: lang.module.php */
+/* End of File: lang.tgl_twitter.php */
