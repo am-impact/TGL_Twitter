@@ -43,25 +43,16 @@ class Tgl_twitter_model extends CI_Model
 	 */
 	function get_settings()
 	{
+		$query = $this->db->query("SELECT * FROM `exp_tgl_twitter_settings` WHERE `site_id` = " . $this->site_id . " LIMIT 1");
 
-		$query = $this->db->query("SELECT * 
-    FROM exp_tgl_twitter_settings
-    WHERE site_id = ". $this->site_id);
+		if ($query->num_rows() == 0)
+		{
+			return FALSE;
+		}
 
-    $settings = false;
+		$settings = $query->result_array();
 
-    if($query->num_rows() > 0){
-
-      $settings = array();
-
-      foreach ($query->result_array() as $row){
-				$settings[$row['var']] = $row['var_value'];
-      }
-
-    }
-		
-		return $settings;
-			
+		return $settings[0];
 	}
 
 	/**
