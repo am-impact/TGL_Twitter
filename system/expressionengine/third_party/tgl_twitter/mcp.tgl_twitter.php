@@ -55,7 +55,15 @@ class Tgl_twitter_mcp
 
 		$connection                          = new TwitterOAuth($this->data['settings']['consumer_key'], $this->data['settings']['consumer_secret']);
 		$this->data['temporary_credentials'] = $connection->getRequestToken();
-		$this->data['authentication_url']    = $connection->getAuthorizeURL($this->data['temporary_credentials']);
+
+		if (!isset($this->data['temporary_credentials']['oauth_token']) || !isset($this->data['temporary_credentials']['oauth_token_secret']))
+		{
+			$this->data['message'] = $this->EE->lang->line('There\'s an unknown problem with the twitter application, contact an administrator to get this fixed.');
+		}
+		else
+		{
+			$this->data['authentication_url']    = $connection->getAuthorizeURL($this->data['temporary_credentials']);
+		}
 
 		return $this->EE->load->view('index', $this->data, TRUE);
 	}
