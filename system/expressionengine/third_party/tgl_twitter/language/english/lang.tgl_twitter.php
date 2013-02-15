@@ -17,6 +17,7 @@ $lang = array(
 	'prevoke_authentication'         => 'Prevoke authentication',
 	'consumer_key'                   => 'Consumer key',
 	'consumer_secret'                => 'Consumer secret',
+	'information'                    => 'Step 1: press authentication, Step 2: login, Step 3: press update, Step 4: all done'
 );
 
 /* End of File: lang.tgl_twitter.php */

@@ -12,7 +12,7 @@ if (isset($message))
 }
 
 $this->table->set_template($cp_table_template);
-$this->table->set_heading(lang('tgl_twitter_user_setup'));
+$this->table->set_heading(lang('tgl_twitter_user_setup'), '');
 
 // Setup form
 echo form_open($form_action, '', '');
@@ -20,12 +20,15 @@ echo form_hidden('temporary_oauth_token', $temporary_credentials['oauth_token'])
 echo form_hidden('temporary_oauth_token_secret', $temporary_credentials['oauth_token_secret']);
 
 $this->table->add_row(
+	array(
+	     'colspan' => 2,
+	     'data'    => '<strong>' . lang('information') . '</strong>'
+	)
+);
+
+$this->table->add_row(
 	"<strong>" . lang('authentication_link') . "</strong>",
 	"<p><a id='generate_request_token' target='_blank' href='$authentication_url'>" . lang('get_authentication') . "</a></p>"
-);
-$this->table->add_row(
-	"<strong>" . lang('delete_authentication') . "</strong>",
-	"<p><a id='generate_request_token' href='". BASE . AMP . "C=addons_modules" . AMP . "M=show_module_cp" . AMP . "module=tgl_twitter" . AMP . "method=prevoke_authentication'>" . lang('prevoke_authentication') . "</a></p>"
 );
 
 echo $this->table->generate();

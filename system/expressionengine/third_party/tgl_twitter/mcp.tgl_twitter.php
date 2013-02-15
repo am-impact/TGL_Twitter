@@ -48,21 +48,30 @@ class Tgl_twitter_mcp
 		$this->data['form_action'] = AMP . 'C=addons_modules' . AMP . 'M=show_module_cp' . AMP . 'module=tgl_twitter' . AMP . 'method=submit_user_settings';
 		$this->data['settings']    = $this->EE->tgl_twitter_model->get_settings();
 
+		// if oauth_token and secret are set the extension is configured and can show different information
+		if (! empty($this->data['settings']['oauth_token']) && ! empty($this->data['settings']['oauth_token_secret']))
+		{
+			$this->data['message'] = $this->EE->lang->line('The twitter extension is already configured');
+			return $this->EE->load->view('completed', $this->data, TRUE);
+		}
+
+		// Extension has to have consumer key and secret before user can authenticate
 		if (empty($this->data['settings']['consumer_key']) && empty($this->data['settings']['consumer_secret']))
 		{
 			$this->data['message'] = $this->EE->lang->line('TGL Twitter has not been configured yet, contact an administrator to get it configured.');
+			return $this->EE->load->view('index', $this->data, TRUE);
 		}
 
 		$connection                          = new TwitterOAuth($this->data['settings']['consumer_key'], $this->data['settings']['consumer_secret']);
 		$this->data['temporary_credentials'] = $connection->getRequestToken();
 
-		if (!isset($this->data['temporary_credentials']['oauth_token']) || !isset($this->data['temporary_credentials']['oauth_token_secret']))
+		if (! isset($this->data['temporary_credentials']['oauth_token']) || ! isset($this->data['temporary_credentials']['oauth_token_secret']))
 		{
 			$this->data['message'] = $this->EE->lang->line('There\'s an unknown problem with the twitter application, contact an administrator to get this fixed.');
 		}
 		else
 		{
-			$this->data['authentication_url']    = $connection->getAuthorizeURL($this->data['temporary_credentials']);
+			$this->data['authentication_url'] = $connection->getAuthorizeURL($this->data['temporary_credentials']);
 		}
 
 		return $this->EE->load->view('index', $this->data, TRUE);
