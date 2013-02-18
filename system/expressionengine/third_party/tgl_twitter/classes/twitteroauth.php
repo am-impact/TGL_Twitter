@@ -36,34 +36,31 @@ class TwitterOAuth
     public $http_info;
     /* Set the useragnet. */
     public $useragent = 'TwitterOAuth v0.2.0-beta2';
-
     /* Immediately retry the API call if the response was not successful. */
     //public $retry = TRUE;
+
+
+
 
     /**
      * Set API URLS
      */
     function accessTokenURL() { return 'https://api.twitter.com/oauth/access_token'; }
-
-    function authenticateURL() { return 'https://twitter.com/oauth/authenticate'; }
-
-    function authorizeURL() { return 'https://twitter.com/oauth/authorize'; }
-
+  function authenticateURL() { return 'https://api.twitter.com/oauth/authenticate'; }
+  function authorizeURL()    { return 'https://api.twitter.com/oauth/authorize'; }
     function requestTokenURL() { return 'https://api.twitter.com/oauth/request_token'; }
 
     /**
      * Debug helpers
      */
     function lastStatusCode() { return $this->http_status; }
-
     function lastAPICall() { return $this->last_api_call; }
 
     /**
      * construct TwitterOAuth object
      */
-    function __construct($consumer_key, $consumer_secret, $url, $oauth_token = NULL, $oauth_token_secret = NULL)
+    function __construct($consumer_key, $consumer_secret, $oauth_token = NULL, $oauth_token_secret = NULL)
     {
-        $this->host        = $url;
         $this->sha1_method = new OAuthSignatureMethod_HMAC_SHA1();
         $this->consumer    = new OAuthConsumer($consumer_key, $consumer_secret);
         if (! empty($oauth_token) && ! empty($oauth_token_secret))
@@ -75,6 +72,7 @@ class TwitterOAuth
             $this->token = NULL;
         }
     }
+
 
     /**
      * Get a request_token from Twitter
@@ -131,23 +129,13 @@ class TwitterOAuth
      *                "user_id" => "9436992",
      *                "screen_name" => "abraham")
      */
-    function getAccessToken($token = NULL, $pin = NULL)
-    {
-        if ($pin)
-        {
-            $request = $this->oAuthRequest($this->accessTokenURL(), 'POST', array('oauth_verifier' => $pin));
+  function getAccessToken($oauth_verifier = FALSE) {
+    $parameters = array();
+    if (!empty($oauth_verifier)) {
+      $parameters['oauth_verifier'] = $oauth_verifier;
         }
-        else
-        {
-            $request = $this->oAuthRequest($this->accessTokenURL());
-        }
+    $request = $this->oAuthRequest($this->accessTokenURL(), 'GET', $parameters);
         $token = OAuthUtil::parse_parameters($request);
-
-        if (! isset($token['oauth_token']))
-        {
-            return FALSE;
-        }
-
         $this->token = new OAuthConsumer($token['oauth_token'], $token['oauth_token_secret']);
         return $token;
     }

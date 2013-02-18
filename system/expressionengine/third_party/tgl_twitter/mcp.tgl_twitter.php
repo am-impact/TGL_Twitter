@@ -1,199 +1,186 @@
 <?php if (! defined('BASEPATH'))
 {
-    exit('No direct script access allowed');
+	exit('No direct script access allowed');
 }
 
 require_once PATH_THIRD . 'tgl_twitter/classes/twitteroauth.php';
 
 class Tgl_twitter_mcp
 {
-    private $data = array();
+	private $data = array();
 
-    public function __construct()
-    {
-        $this->EE       =& get_instance();
-        $this->site_id  = $this->EE->config->item('site_id');
-        $this->base_url = BASE . AMP . 'C=addons_modules' . AMP . 'M=show_module_cp' . AMP . 'module=tgl_twitter';
+	public function __construct()
+	{
+		$this->EE       =& get_instance();
+		$this->site_id  = $this->EE->config->item('site_id');
+		$this->base_url = BASE . AMP . 'C=addons_modules' . AMP . 'M=show_module_cp' . AMP . 'module=tgl_twitter';
 
-        // load table lib for control panel
-        $this->EE->load->library('table');
-        $this->EE->load->helper('form');
+		// load table lib for control panel
+		$this->EE->load->library('table');
+		$this->EE->load->helper('form');
 
-        $this->EE->cp->load_package_css('tgl_twitter');
+		// Setting up menu
+		$menu = array(
+			'User settings' => BASE . AMP . 'C=addons_modules' . AMP . 'M=show_module_cp' . AMP . 'module=tgl_twitter',
+		);
 
-        // Set page title
-        $this->EE->cp->set_variable('cp_page_title', $this->EE->lang->line('tgl_twitter_module_name'));
-    }
+		if ($this->EE->session->userdata('group_id') == 1)
+		{
+			$menu['Configuration'] = BASE . AMP . 'C=addons_modules' . AMP . 'M=show_module_cp' . AMP . 'module=tgl_twitter' . AMP . 'method=configuration';
+		}
 
-    /**
-     * Module CP index function
-     *
-     * @return void
-     * @author Bryant Hughes
-     */
-    public function index()
-    {
-        $this->EE->load->model('tgl_twitter_model');
+		// Set page settings
+		$this->EE->cp->load_package_css('tgl_twitter');
+		$this->EE->cp->set_right_nav($menu);
+		$this->EE->cp->set_variable('cp_page_title', $this->EE->lang->line('tgl_twitter_module_name'));
+	}
 
-        $this->data['form_action'] = AMP . 'C=addons_modules' . AMP . 'M=show_module_cp' . AMP . 'module=tgl_twitter' . AMP . 'method=submit_settings';
-        $this->data['settings']    = $this->EE->tgl_twitter_model->get_settings();
+	/**
+	 * User setup configuration
+	 *
+	 * @return void
+	 * @author Ronald van Zon
+	 */
+	public function index()
+	{
+		$this->EE->load->model('tgl_twitter_model');
 
-        return $this->EE->load->view('index', $this->data, TRUE);
-    }
+		$this->data['form_action'] = AMP . 'C=addons_modules' . AMP . 'M=show_module_cp' . AMP . 'module=tgl_twitter' . AMP . 'method=submit_user_settings';
+		$this->data['settings']    = $this->EE->tgl_twitter_model->get_settings();
 
-    /**
-     * Called after new settings have been submitted
-     *
-     * @return void
-     * @author Bryant Hughes
-     */
-    public function submit_settings()
-    {
+		// if oauth_token and secret are set the extension is configured and can show different information
+		if (! empty($this->data['settings']['oauth_token']) && ! empty($this->data['settings']['oauth_token_secret']))
+		{
+			$this->data['message'] = $this->EE->lang->line('The twitter extension is already configured');
+			return $this->EE->load->view('completed', $this->data, TRUE);
+		}
 
-        $this->EE->load->model('tgl_twitter_model');
+		// Extension has to have consumer key and secret before user can authenticate
+		if (empty($this->data['settings']['consumer_key']) && empty($this->data['settings']['consumer_secret']))
+		{
+			$this->data['message'] = $this->EE->lang->line('TGL Twitter has not been configured yet, contact an administrator to get it configured.');
+			return $this->EE->load->view('index', $this->data, TRUE);
+		}
 
-        //loops through the post and adds all settings (deletes old settings first)
-        $success = $this->EE->tgl_twitter_model->insert_new_settings();
+		$connection                          = new TwitterOAuth($this->data['settings']['consumer_key'], $this->data['settings']['consumer_secret']);
+		$this->data['temporary_credentials'] = $connection->getRequestToken();
 
-        $settings = $this->EE->tgl_twitter_model->get_settings();
+		if (! isset($this->data['temporary_credentials']['oauth_token']) || ! isset($this->data['temporary_credentials']['oauth_token_secret']))
+		{
+			$this->data['message'] = $this->EE->lang->line('There\'s an unknown problem with the twitter application, contact an administrator to get this fixed.');
+		}
+		else
+		{
+			$this->data['authentication_url'] = $connection->getAuthorizeURL($this->data['temporary_credentials']);
+		}
 
-        if ($success && isset($settings['pin']) && ! isset($settings['access_token'], $settings['access_token_secret']))
-        {
+		return $this->EE->load->view('index', $this->data, TRUE);
+	}
 
-            //if a pin has been submitted, we want to generate the access tokens for the app
-            if ($this->generate_access_tokens($settings))
-            {
-                $this->EE->session->set_flashdata('message_success', $this->EE->lang->line('Success! You are now Authenticated.'));
-            }
-            else
-            {
+	/**
+	 * Admin configuration panel
+	 *
+	 * @return void
+	 * @author Ronald van Zon
+	 */
+	public function configuration()
+	{
+		if ($this->EE->session->userdata('group_id') != 1)
+		{
+			$this->EE->functions->redirect(BASE . AMP . 'C=addons_modules' . AMP . 'M=show_module_cp' . AMP . 'module=tgl_twitter');
+		}
 
-                //if the pin was not able to be created, delete the submitted pin and send the user back to the authenticate page.
-                /*
-                    TODO : we could use some better UX here.  Ideally sending the user back to this page happens after they create a request token,
-                                 and sending them back because of an invaid acess token authentication is somewhat confusing
-                */
-                $this->EE->tgl_twitter_model->delete_setting('pin');
-                $this->EE->session->set_flashdata('message_failure', $this->EE->lang->line('Error authenticating with Twitter. Please verify Pin and re-submit'));
-                $this->EE->functions->redirect(BASE . AMP . 'C=addons_modules' . AMP . 'M=show_module_cp' . AMP . 'module=tgl_twitter' . AMP . 'method=register_with_twitter');
-            }
-        }
-        else
-        {
+		$this->EE->load->model('tgl_twitter_model');
 
-            //else : sumission before pin as been submitted, or after all settings have been submitted
+		$this->data['form_action'] = AMP . 'C=addons_modules' . AMP . 'M=show_module_cp' . AMP . 'module=tgl_twitter' . AMP . 'method=submit_configuration';
+		$this->data['settings']    = $this->EE->tgl_twitter_model->get_settings();
 
-            if (! $success)
-            {
-                $this->EE->session->set_flashdata('message_failure', $this->EE->lang->line('Error saving settings.'));
-            }
-            else
-            {
-                $this->EE->session->set_flashdata('message_success', $this->EE->lang->line('Success!'));
-            }
-        }
+		return $this->EE->load->view('configuration', $this->data, TRUE);
+	}
 
-        $this->EE->functions->redirect(BASE . AMP . 'C=addons_modules' . AMP . 'M=show_module_cp' . AMP . 'module=tgl_twitter');
-    }
+	/**
+	 * Called after user settings have been submitted
+	 *
+	 * @return void
+	 * @author Ronald van Zon
+	 */
+	public function submit_user_settings()
+	{
+		$this->EE->load->model('tgl_twitter_model');
+		$this->data['settings']       = $this->EE->tgl_twitter_model->get_settings();
+		$temporary_oauth_token        = $this->EE->input->post('temporary_oauth_token');
+		$temporary_oauth_token_secret = $this->EE->input->post('temporary_oauth_token_secret');
+		$success                      = FALSE;
 
-    /**
-     * Called after a user clicks "Register"
-     *
-     * @return void
-     * @author Bryant Hughes
-     */
-    public function register_with_twitter()
-    {
+		$connection        = new TwitterOAuth(
+			$this->data['settings']['consumer_key'],
+			$this->data['settings']['consumer_secret'],
+			$temporary_oauth_token,
+			$temporary_oauth_token_secret
+		);
+		$token_credentials = $connection->getAccessToken();
 
-        $this->EE->load->model('tgl_twitter_model');
-        $settings = $this->EE->tgl_twitter_model->get_settings();
+		if (isset($token_credentials['oauth_token']) && isset($token_credentials['oauth_token_secret']))
+		{
+			$success = $this->EE->tgl_twitter_model->insert_oauth_token($token_credentials['oauth_token'], $token_credentials['oauth_token_secret']);
+		}
 
-        $oauth   = new TwitterOAuth($settings['consumer_key'], $settings['consumer_secret']);
-        $request = $oauth->getRequestToken();
+		if ($success)
+		{
+			$this->EE->session->set_flashdata('message_success', $this->EE->lang->line('Oauth -token and -secret are now saved!'));
+		}
+		else
+		{
+			$this->EE->session->set_flashdata('message_failure', $this->EE->lang->line('Oauth -token and -secret could not be saved!'));
+		}
 
-        if ($request != FALSE)
-        {
+		$this->EE->functions->redirect(BASE . AMP . 'C=addons_modules' . AMP . 'M=show_module_cp' . AMP . 'module=tgl_twitter');
+	}
 
-            $requestToken       = $request['oauth_token'];
-            $requestTokenSecret = $request['oauth_token_secret'];
+	/**
+	 * Called after admin configuration settings have been submitted
+	 *
+	 * @return void
+	 * @author Ronald van Zon
+	 */
+	public function submit_configuration()
+	{
+		$this->EE->load->model('tgl_twitter_model');
+		$success = $this->EE->tgl_twitter_model->insert_new_settings();
 
-            //save auth tokens into the db
-            $success = $this->EE->tgl_twitter_model->insert_secret_token($requestToken, $requestTokenSecret);
+		if ($success)
+		{
+			$this->EE->session->set_flashdata('message_success', $this->EE->lang->line('Consumer -key and -secret are now saved!'));
+		}
+		else
+		{
+			$this->EE->session->set_flashdata('message_failure', $this->EE->lang->line('Consumer -key and -secret could not be saved!'));
+		}
+		$this->EE->functions->redirect(BASE . AMP . 'C=addons_modules' . AMP . 'M=show_module_cp' . AMP . 'module=tgl_twitter' . AMP . 'method=configuration');
+	}
 
-            if ($success)
-            {
+	/**
+	 * prevoke oauth tokens
+	 *
+	 * @return void
+	 * @author Ronald van Zon
+	 */
+	public function prevoke_authentication()
+	{
+		$this->EE->load->model('tgl_twitter_model');
+		$result = $this->EE->tgl_twitter_model->delete_oauth_tokens();
 
-                // get Twitter generated registration URL and load the authenticate view
-                $this->data['register_url'] = $oauth->getAuthorizeURL($request);
-                $this->EE->session->set_flashdata('message_success', $this->EE->lang->line('Success!'));
-                return $this->EE->load->view('authenticate', $this->data, TRUE);
-            }
-            else
-            {
-                $this->EE->session->set_flashdata('message_failure', $this->EE->lang->line('There was an error saving request tokens.'));
-                $this->EE->functions->redirect(BASE . AMP . 'C=addons_modules' . AMP . 'M=show_module_cp' . AMP . 'module=tgl_twitter');
-            }
-        }
-        else
-        {
+		if ($result)
+		{
+			$this->EE->session->set_flashdata('message_success', $this->EE->lang->line('Authentication tokens erased.'));
+		}
+		else
+		{
+			$this->EE->session->set_flashdata('message_failure', $this->EE->lang->line('Authentication could not be erased.'));
+		}
 
-            //else : we were not able to create request tokens, probably becase the consumer key/secret were correct.  lets erase those keys
-            //			 from the settings and send the user back to square one of the process.
-
-            $this->EE->tgl_twitter_model->delete_all_settings();
-            $this->EE->session->set_flashdata('message_failure', $this->EE->lang->line('There was an error generating request tokens. Please verify and re-submit your Consumer Key and Secret.'));
-            $this->EE->functions->redirect(BASE . AMP . 'C=addons_modules' . AMP . 'M=show_module_cp' . AMP . 'module=tgl_twitter');
-        }
-    }
-
-    /**
-     * Used to generate the access tokens from Twitter.  This is the last step in the authentication process
-     *
-     * @param string $settings
-     *
-     * @return boolean : depending if we were able to generate the tokens and save them to the DB or NOT
-     * @author Bryant Hughes
-     */
-    private function generate_access_tokens($settings)
-    {
-        $this->EE->load->model('tgl_twitter_model');
-
-        //Retrieve our previously generated request token & secret
-        $requestToken       = $settings['request_token'];
-        $requestTokenSecret = $settings['request_token_secret'];
-
-        $oauth = new TwitterOAuth('consumer_key', 'consumer_secret', $requestToken, $requestTokenSecret);
-
-        // Generate access token by providing PIN for Twitter
-        $request = $oauth->getAccessToken(NULL, $settings['pin']);
-
-        if ($request != FALSE)
-        {
-            $access_token        = $request['oauth_token'];
-            $access_token_secret = $request['oauth_token_secret'];
-
-            // Save our access token/secret
-            return $this->EE->tgl_twitter_model->insert_access_token($access_token, $access_token_secret);
-        }
-        else
-        {
-            return FALSE;
-        }
-    }
-
-    /**
-     * function that kills all settings in the DB and starts us over at square one.
-     *
-     * @return void
-     * @author Bryant Hughes
-     */
-    public function erase_settings()
-    {
-        $this->EE->load->model('tgl_twitter_model');
-        $this->EE->tgl_twitter_model->delete_all_settings();
-        $this->EE->session->set_flashdata('message_success', $this->EE->lang->line('Authentication Settings Erased.'));
-        $this->EE->functions->redirect(BASE . AMP . 'C=addons_modules' . AMP . 'M=show_module_cp' . AMP . 'module=tgl_twitter');
-    }
+		$this->EE->functions->redirect(BASE . AMP . 'C=addons_modules' . AMP . 'M=show_module_cp' . AMP . 'module=tgl_twitter');
+	}
 }
 
-/* End of File: mcp.module.php */
+/* End of File: mcp.tgl_twitter.php */
