@@ -160,12 +160,12 @@ class Tgl_twitter_mcp
 	}
 
 	/**
-	 * prevoke oauth tokens
+	 * Revoke oauth tokens
 	 *
 	 * @return void
 	 * @author Ronald van Zon
 	 */
-	public function prevoke_authentication()
+	public function revoke_authentication()
 	{
 		$this->EE->load->model('tgl_twitter_model');
 		$result = $this->EE->tgl_twitter_model->delete_oauth_tokens();
