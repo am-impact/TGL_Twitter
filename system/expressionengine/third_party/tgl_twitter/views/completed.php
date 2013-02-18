@@ -18,7 +18,7 @@ $this->table->add_row(
 
 $this->table->add_row(
     "<strong>" . lang('delete_authentication') . "</strong>",
-    "<p><a id='generate_request_token' href='". BASE . AMP . "C=addons_modules" . AMP . "M=show_module_cp" . AMP . "module=tgl_twitter" . AMP . "method=prevoke_authentication'>" . lang('prevoke_authentication') . "</a></p>"
+    "<p><a id='generate_request_token' href='". BASE . AMP . "C=addons_modules" . AMP . "M=show_module_cp" . AMP . "module=tgl_twitter" . AMP . "method=revoke_authentication'>" . lang('revoke_authentication') . "</a></p>"
 );
 
 echo $this->table->generate();
