@@ -110,6 +110,7 @@ class Tgl_twitter_mcp
 		$this->data['settings']       = $this->EE->tgl_twitter_model->get_settings();
 		$temporary_oauth_token        = $this->EE->input->post('temporary_oauth_token');
 		$temporary_oauth_token_secret = $this->EE->input->post('temporary_oauth_token_secret');
+		$auth_verifier                = $this->EE->input->post('auth_verifier');
 		$success                      = FALSE;
 
 		$connection        = new TwitterOAuth(
@@ -118,7 +119,7 @@ class Tgl_twitter_mcp
 			$temporary_oauth_token,
 			$temporary_oauth_token_secret
 		);
-		$token_credentials = $connection->getAccessToken();
+		$token_credentials = $connection->getAccessToken($auth_verifier);
 
 		if (isset($token_credentials['oauth_token']) && isset($token_credentials['oauth_token_secret']))
 		{
