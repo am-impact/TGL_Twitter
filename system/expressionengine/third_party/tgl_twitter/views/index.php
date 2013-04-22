@@ -31,6 +31,11 @@ $this->table->add_row(
 	"<p><a id='generate_request_token' target='_blank' href='$authentication_url'>" . lang('get_authentication') . "</a></p>"
 );
 
+$this->table->add_row(
+	"<strong>" . lang('enter_pin') . "</strong>",
+	"<p><input type=\"text\" id=\"auth_verifier\" name=\"auth_verifier\" /></p>"
+);
+
 echo $this->table->generate();
 echo form_submit(
 	array(
