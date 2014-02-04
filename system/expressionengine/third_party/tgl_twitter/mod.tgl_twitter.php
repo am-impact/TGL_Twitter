@@ -296,10 +296,6 @@ class Tgl_twitter
 				{
 					$tagdata = $this->EE->TMPL->swap_var_single($var_key, $val['user'][$var_key], $tagdata);
 				}
-				else
-				{
-					$tagdata = $this->EE->TMPL->swap_var_single($var_key, '', $tagdata);
-				}
 			}
 
 			$this->return_data .= $tagdata;
